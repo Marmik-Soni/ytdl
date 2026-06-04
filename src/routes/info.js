@@ -15,7 +15,14 @@ router.get("/", validateUrl, async (_req, res) => {
   try {
     const { stdout } = await execFileAsync(
       ytdlp.getPath(),
-      ["--dump-json", "--no-playlist", "--no-warnings", "--quiet", _req.sanitizedUrl],
+      [
+        "--dump-json",
+        "--no-playlist",
+        "--no-warnings",
+        "--quiet",
+        ...ytdlp.getCookiesArgs(),
+        _req.sanitizedUrl,
+      ],
       { timeout: config.ytdlp.timeout, maxBuffer: config.ytdlp.maxBuffer },
     );
 

@@ -11,6 +11,9 @@ const downloadRoutes = require("./routes/download");
 
 const app = express();
 
+// Trust the first proxy (Vercel's proxy)
+app.set("trust proxy", 1);
+
 // ─── Security ─────────────────────────────────────────────────────────────────
 // Disable CSP because the frontend uses inline scripts/styles.
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));

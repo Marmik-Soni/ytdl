@@ -1,6 +1,8 @@
 const path = require("node:path");
 const fs = require("node:fs");
 
+const os = require("node:os");
+
 /**
  * Resolve the yt-dlp binary path.
  *
@@ -21,4 +23,15 @@ function getPath() {
   return "yt-dlp";
 }
 
-module.exports = { getPath };
+function getCookiesArgs() {
+  const b64 = process.env.YOUTUBE_COOKIES_B64;
+  if (!b64) return [];
+
+  const cookiesPath = path.join(os.tmpdir(), "yt-cookies.txt");
+  if (!fs.existsSync(cookiesPath)) {
+    fs.writeFileSync(cookiesPath, Buffer.from(b64, "base64").toString("utf8"));
+  }
+  return ["--cookies", cookiesPath];
+}
+
+module.exports = { getPath, getCookiesArgs };
