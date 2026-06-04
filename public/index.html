@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YTDL — Download Anything</title>
+  <meta name="description" content="Self-hosted YouTube downloader. Paste a URL, pick a format, download instantly. No ads, no tracking." />
+  <meta name="theme-color" content="#0a0a0a" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --surface: #111111;
+      --border: #222222;
+      --border-bright: #333333;
+      --text: #e8e8e8;
+      --muted: #555;
+      --accent: #e8ff47;
+      --accent-dim: #c8df30;
+      --red: #ff4545;
+      --green: #47ff8a;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'IBM Plex Sans', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 16px 80px;
+      overflow-x: hidden;
+    }
+
+    /* Grain overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0.6;
+    }
+
+    /* ── Header ── */
+    header {
+      width: 100%;
+      max-width: 720px;
+      padding: 48px 0 40px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 52px;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .logo {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.25em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-family: var(--mono);
+      font-size: clamp(32px, 6vw, 52px);
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      color: var(--text);
+    }
+
+    h1 span { color: var(--accent); }
+
+    .subtitle {
+      margin-top: 12px;
+      font-size: 14px;
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+
+    /* ── Main card ── */
+    main {
+      width: 100%;
+      max-width: 720px;
+      animation: fadeUp 0.5s 0.1s ease both;
+    }
+
+    /* ── URL Input ── */
+    .input-group {
+      display: flex;
+      gap: 0;
+      border: 1px solid var(--border-bright);
+      background: var(--surface);
+      transition: border-color 0.2s;
+    }
+
+    .input-group:focus-within {
+      border-color: var(--accent);
+    }
+
+    #url-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      padding: 16px 20px;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text);
+      caret-color: var(--accent);
+    }
+
+    #url-input::placeholder { color: var(--muted); }
+
+    #fetch-btn {
+      background: var(--accent);
+      color: #0a0a0a;
+      border: none;
+      padding: 0 24px;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      white-space: nowrap;
+    }
+
+    #fetch-btn:hover { background: var(--accent-dim); }
+    #fetch-btn:active { transform: scale(0.97); }
+    #fetch-btn:disabled { background: #2a2a2a; color: var(--muted); cursor: not-allowed; }
+
+    /* ── Status / error ── */
+    #status {
+      margin-top: 12px;
+      font-family: var(--mono);
+      font-size: 12px;
+      min-height: 20px;
+      transition: color 0.2s;
+    }
+    #status.error { color: var(--red); }
+    #status.loading { color: var(--accent); }
+    #status.ok { color: var(--green); }
+
+    /* ── Loader dots ── */
+    .dots::after {
+      content: '';
+      animation: dots 1.2s steps(4, end) infinite;
+    }
+    @keyframes dots {
+      0%   { content: ''; }
+      25%  { content: '.'; }
+      50%  { content: '..'; }
+      75%  { content: '...'; }
+    }
+
+    /* ── Video info card ── */
+    #info-card {
+      display: none;
+      margin-top: 32px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      animation: fadeUp 0.35s ease both;
+    }
+
+    .info-header {
+      display: flex;
+      gap: 20px;
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .info-thumb {
+      width: 140px;
+      height: 80px;
+      object-fit: cover;
+      flex-shrink: 0;
+      border: 1px solid var(--border-bright);
+    }
+
+    .info-meta { flex: 1; min-width: 0; }
+
+    .info-title {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.4;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .info-sub {
+      margin-top: 6px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* ── Format selector ── */
+    .formats-section { padding: 20px; }
+
+    .formats-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    .format-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .tab {
+      padding: 6px 16px;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border: 1px solid var(--border-bright);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tab.active { background: var(--accent); color: #0a0a0a; border-color: var(--accent); }
+    .tab:hover:not(.active) { border-color: var(--text); color: var(--text); }
+
+    .format-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 8px;
+    }
+
+    .format-btn {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s;
+      font-family: var(--mono);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .format-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--accent);
+      transform: translateX(-100%);
+      transition: transform 0.2s;
+      z-index: 0;
+    }
+
+    .format-btn:hover::before { transform: translateX(0); }
+    .format-btn:hover { color: #0a0a0a; border-color: var(--accent); }
+
+    .format-btn > * { position: relative; z-index: 1; }
+
+    .fmt-name {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .fmt-sub {
+      font-size: 10px;
+      opacity: 0.6;
+    }
+
+    .fmt-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: var(--border-bright);
+      color: var(--muted);
+      margin-top: 4px;
+      width: fit-content;
+    }
+
+    .format-btn:hover .fmt-badge { background: rgba(0,0,0,0.15); color: #0a0a0a; }
+
+    /* ── Download progress overlay ── */
+    #dl-toast {
+      display: none;
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--surface);
+      border: 1px solid var(--accent);
+      padding: 14px 24px;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--accent);
+      z-index: 100;
+      animation: fadeUp 0.2s ease both;
+      white-space: nowrap;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Footer ── */
+    footer {
+      margin-top: 64px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.8;
+    }
+
+    footer a { color: var(--muted); text-decoration: underline; }
+
+    @media (max-width: 500px) {
+      .info-thumb { width: 100px; height: 60px; }
+      .info-title { font-size: 12px; }
+      .format-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">▶ YTDL v2.0</div>
+  <h1>Download<br /><span>Anything.</span></h1>
+  <div class="subtitle">// paste a youtube url. pick your format. done.</div>
+</header>
+
+<main>
+  <div class="input-group">
+    <input
+      id="url-input"
+      type="url"
+      placeholder="https://youtube.com/watch?v=..."
+      autocomplete="off"
+      spellcheck="false"
+    />
+    <button id="fetch-btn">Fetch →</button>
+  </div>
+  <div id="status"></div>
+
+  <div id="info-card">
+    <div class="info-header">
+      <img class="info-thumb" id="thumb" src="" alt="" />
+      <div class="info-meta">
+        <div class="info-title" id="vid-title">—</div>
+        <div class="info-sub" id="vid-meta">—</div>
+      </div>
+    </div>
+
+    <div class="formats-section">
+      <div class="formats-label">// select format</div>
+      <div class="format-tabs">
+        <button class="tab active" data-type="video">Video</button>
+        <button class="tab" data-type="audio">Audio</button>
+      </div>
+      <div class="format-grid" id="format-grid"></div>
+    </div>
+  </div>
+</main>
+
+<div id="dl-toast">⬇ Starting download<span class="dots"></span></div>
+
+<footer>
+  powered by <a href="https://github.com/yt-dlp/yt-dlp" target="_blank" rel="noopener noreferrer">yt-dlp</a> &amp; express
+  &nbsp;|&nbsp; for personal use only
+</footer>
+
+<script>
+  const urlInput = document.getElementById('url-input');
+  const fetchBtn = document.getElementById('fetch-btn');
+  const statusEl = document.getElementById('status');
+  const infoCard = document.getElementById('info-card');
+  const formatGrid = document.getElementById('format-grid');
+  const dlToast = document.getElementById('dl-toast');
+
+  let currentFormats = [];
+  let currentTitle = '';
+  let currentUrl = '';
+  let activeType = 'video';
+
+  // ── Tabs ──
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      activeType = tab.dataset.type;
+      renderFormats();
+    });
+  });
+
+  // ── Fetch info ──
+  async function fetchInfo() {
+    const url = urlInput.value.trim();
+    if (!url) { setStatus('Paste a YouTube URL first.', 'error'); return; }
+
+    fetchBtn.disabled = true;
+    infoCard.style.display = 'none';
+    setStatus('Fetching video info', 'loading dots');
+
+    try {
+      const res = await fetch(`/api/info?url=${encodeURIComponent(url)}`);
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        setStatus(data.error || 'Something went wrong.', 'error');
+        return;
+      }
+
+      currentUrl = url;
+      currentTitle = data.title;
+      currentFormats = data.formats;
+
+      // Populate info card
+      document.getElementById('thumb').src = data.thumbnail || '';
+      document.getElementById('vid-title').textContent = data.title;
+      document.getElementById('vid-meta').textContent =
+        `${data.channel || ''}  ·  ${formatDuration(data.duration)}`;
+
+      renderFormats();
+      infoCard.style.display = 'block';
+      setStatus(`✓ Found ${data.formats.length} formats`, 'ok');
+
+    } catch (e) {
+      setStatus('Network error — is the server running?', 'error');
+    } finally {
+      fetchBtn.disabled = false;
+    }
+  }
+
+  function renderFormats() {
+    const filtered = currentFormats.filter(f => f.type === activeType);
+    formatGrid.innerHTML = '';
+
+    if (!filtered.length) {
+      formatGrid.innerHTML = '<div style="color:var(--muted);font-family:var(--mono);font-size:12px;">No formats available.</div>';
+      return;
+    }
+
+    filtered.forEach(fmt => {
+      const btn = document.createElement('button');
+      btn.className = 'format-btn';
+      btn.innerHTML = `
+        <span class="fmt-name">${fmt.label}</span>
+        <span class="fmt-sub">${fmt.filesize ? fmtSize(fmt.filesize) : ''}</span>
+        <span class="fmt-badge">${fmt.ext.toUpperCase()}</span>
+      `;
+      btn.addEventListener('click', () => startDownload(fmt));
+      formatGrid.appendChild(btn);
+    });
+  }
+
+  function startDownload(fmt) {
+    const params = new URLSearchParams({
+      url: currentUrl,
+      format: fmt.id,
+      ext: fmt.ext,
+      type: fmt.type,
+      title: currentTitle,
+      ...(fmt.quality ? { quality: fmt.quality } : {}),
+    });
+
+    // Trigger download via hidden anchor
+    const a = document.createElement('a');
+    a.href = `/api/download?${params}`;
+    a.download = '';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    // Show toast
+    dlToast.style.display = 'block';
+    setTimeout(() => { dlToast.style.display = 'none'; }, 4000);
+  }
+
+  // ── Utils ──
+  function setStatus(msg, cls = '') {
+    statusEl.textContent = msg;
+    statusEl.className = cls.replace('dots', '').trim();
+    if (cls.includes('dots')) {
+      const span = document.createElement('span');
+      span.className = 'dots';
+      statusEl.appendChild(span);
+    }
+  }
+
+  function formatDuration(secs) {
+    if (!secs) return '';
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = secs % 60;
+    return h ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` : `${m}:${String(s).padStart(2,'0')}`;
+  }
+
+  function fmtSize(bytes) {
+    if (!bytes) return '';
+    if (bytes > 1e9) return (bytes / 1e9).toFixed(1) + ' GB';
+    if (bytes > 1e6) return (bytes / 1e6).toFixed(1) + ' MB';
+    return (bytes / 1e3).toFixed(0) + ' KB';
+  }
+
+  // ── Events ──
+  fetchBtn.addEventListener('click', fetchInfo);
+  urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') fetchInfo(); });
+
+  // Auto-detect paste
+  urlInput.addEventListener('paste', () => {
+    setTimeout(() => {
+      if (urlInput.value.includes('youtube.com') || urlInput.value.includes('youtu.be')) {
+        fetchInfo();
+      }
+    }, 50);
+  });
+</script>
+</body>
+</html>

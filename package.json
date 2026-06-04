@@ -1,0 +1,31 @@
+{
+  "name": "ytdl",
+  "version": "1.0.0",
+  "description": "Self-hosted YouTube downloader — paste a URL, pick a format, download. Built with Express + yt-dlp.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write ."
+  },
+  "author": "Marmik Soni <marmiksoni777@gmail.com>",
+  "license": "MIT",
+  "keywords": ["youtube", "downloader", "yt-dlp", "express", "streaming"],
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "pnpm@9.15.4",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.1.0",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "nodemon": "^3.1.9"
+  }
+}
