@@ -8,12 +8,16 @@ const fs = require("node:fs");
  * the bundled copy is preferred. Falls back to whatever is on PATH.
  */
 function getPath() {
-  const bundledExe = path.join(__dirname, "../../yt-dlp.exe");
-  if (fs.existsSync(bundledExe)) return bundledExe;
+  const isWindows = process.platform === "win32";
+
+  if (isWindows) {
+    const exe = path.join(__dirname, "../../yt-dlp.exe");
+    if (fs.existsSync(exe)) return exe;
+    return "yt-dlp.exe";
+  }
 
   const bundled = path.join(__dirname, "../../yt-dlp");
   if (fs.existsSync(bundled)) return bundled;
-
   return "yt-dlp";
 }
 
