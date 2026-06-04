@@ -5,9 +5,6 @@
     "clientKind": "git",
     "useIgnoreFile": true
   },
-  "organizeImports": {
-    "enabled": true
-  },
   "linter": {
     "enabled": true,
     "rules": {
@@ -18,7 +15,6 @@
       },
       "style": {
         "useConst": "error",
-        "noVar": "error",
         "useTemplate": "warn"
       }
     }
@@ -35,8 +31,5 @@
       "semicolons": "always",
       "trailingCommas": "all"
     }
-  },
-  "files": {
-    "ignore": ["node_modules", "dist", ".vercel", "public"]
   }
 }
