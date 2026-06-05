@@ -1,4 +1,3 @@
-const { execSync } = require("node:child_process");
 const path = require("node:path");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -6,25 +5,17 @@ const os = require("node:os");
 /**
  * Resolve the yt-dlp binary path.
  *
- * Prefers the pip-installed yt-dlp (which has plugin support) over the
- * bundled binary. Falls back to the bundled binary, then PATH.
+ * On Linux (Render), hardcodes the pip-installed path so plugins are
+ * auto-discovered. On Windows, falls back to bundled .exe or PATH.
  */
 function getPath() {
-  // Prefer pip-installed yt-dlp — it has full plugin support
-  try {
-    const pipPath = execSync("which yt-dlp", { encoding: "utf8" }).trim();
-    if (pipPath) return pipPath;
-  } catch {}
-
-  const isWindows = process.platform === "win32";
-  if (isWindows) {
-    const exe = path.join(__dirname, "../../yt-dlp.exe");
-    if (fs.existsSync(exe)) return exe;
-    return "yt-dlp.exe";
+  if (process.platform !== "win32") {
+    // On Linux/Render: always use pip-installed yt-dlp which has plugin support
+    return "/usr/local/bin/yt-dlp";
   }
-  const bundled = path.join(__dirname, "../../yt-dlp");
-  if (fs.existsSync(bundled)) return bundled;
-  return "yt-dlp";
+  const exe = path.join(__dirname, "../../yt-dlp.exe");
+  if (fs.existsSync(exe)) return exe;
+  return "yt-dlp.exe";
 }
 
 function getCookiesArgs() {
