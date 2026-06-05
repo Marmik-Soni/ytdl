@@ -63,6 +63,21 @@ app.get("/api/debug-cookies", (_req, res) => {
   });
 });
 
+app.get("/api/debug-ytdlp", (_req, res) => {
+  const { execSync } = require("node:child_process");
+  try {
+    const which = execSync("which yt-dlp || find /usr -name yt-dlp 2>/dev/null || echo 'not found'", {
+      encoding: "utf8",
+    });
+    const version = execSync("yt-dlp --version 2>/dev/null || echo 'not runnable'", {
+      encoding: "utf8",
+    });
+    res.json({ which: which.trim(), version: version.trim() });
+  } catch (e) {
+    res.json({ error: e.message });
+  }
+});
+
 app.use("/api/info", infoRoutes);
 app.use("/api/download", downloadRoutes);
 
