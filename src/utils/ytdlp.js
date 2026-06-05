@@ -11,8 +11,8 @@ const os = require("node:os");
 function getPath() {
   if (process.platform !== "win32") {
     const candidates = [
+      "/opt/render/project/src/.venv/bin/yt-dlp",
       "/root/.local/bin/yt-dlp",
-      "/home/render/.local/bin/yt-dlp",
       "/usr/local/bin/yt-dlp",
       "/usr/bin/yt-dlp",
     ];
