@@ -50,15 +50,15 @@ app.get("/api/health", (_req, res) => {
 app.get("/api/debug-cookies", (_req, res) => {
   const b64 = process.env.YOUTUBE_COOKIES_B64;
   if (!b64) return res.json({ error: "No cookies env var set" });
-  
+
   const decoded = Buffer.from(b64, "base64").toString("utf8");
-  const lines = decoded.split("\n").filter(l => l && !l.startsWith("#"));
-  
+  const lines = decoded.split("\n").filter((l) => l && !l.startsWith("#"));
+
   res.json({
     envVarLength: b64.length,
     decodedLength: decoded.length,
     cookieCount: lines.length,
-    firstLine: lines[0]?.slice(0, 50) + "...",
+    firstLine: `${lines[0]?.slice(0, 50)}...`,
     hasYoutubeDomain: decoded.includes(".youtube.com"),
   });
 });

@@ -13,7 +13,7 @@ const router = express.Router();
 
 router.get("/", validateUrl, async (_req, res) => {
   try {
-    const { stdout, stderr } = await execFileAsync(
+    const { stdout } = await execFileAsync(
       ytdlp.getPath(),
       [
         "--dump-json",
