@@ -31,7 +31,12 @@ function getCookiesArgs() {
   if (!fs.existsSync(cookiesPath)) {
     fs.writeFileSync(cookiesPath, Buffer.from(b64, "base64").toString("utf8"));
   }
-  return ["--cookies", cookiesPath];
+  const pluginsDir = path.join(__dirname, "../../yt-dlp-plugins");
+
+  return [
+    "--cookies", cookiesPath,
+    "--plugin-dirs", pluginsDir,
+  ];
 }
 
 module.exports = { getPath, getCookiesArgs };
