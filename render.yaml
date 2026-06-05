@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: ytdl
+    runtime: node
+    plan: free
+    buildCommand: |
+      pnpm install
+      curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux -o yt-dlp
+      chmod +x yt-dlp
+    startCommand: node src/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: YOUTUBE_COOKIES_B64
+        sync: false
