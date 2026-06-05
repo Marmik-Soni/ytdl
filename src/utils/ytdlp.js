@@ -10,8 +10,19 @@ const os = require("node:os");
  */
 function getPath() {
   if (process.platform !== "win32") {
-    // On Linux/Render: always use pip-installed yt-dlp which has plugin support
-    return "/usr/local/bin/yt-dlp";
+    const candidates = [
+      "/root/.local/bin/yt-dlp",
+      "/home/render/.local/bin/yt-dlp",
+      "/usr/local/bin/yt-dlp",
+      "/usr/bin/yt-dlp",
+    ];
+    for (const p of candidates) {
+      if (fs.existsSync(p)) return p;
+    }
+    // Fall back to bundled binary
+    const bundled = path.join(__dirname, "../../yt-dlp");
+    if (fs.existsSync(bundled)) return bundled;
+    return "yt-dlp";
   }
   const exe = path.join(__dirname, "../../yt-dlp.exe");
   if (fs.existsSync(exe)) return exe;

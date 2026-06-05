@@ -39,6 +39,24 @@ app.use(
 // ─── Body Parsing ─────────────────────────────────────────────────────────────
 app.use(express.json());
 
+app.get("/api/debug-ytdlp", (_req, res) => {
+  const { execSync } = require("node:child_process");
+  try {
+    const which = execSync(
+      "which yt-dlp || find /usr -name yt-dlp 2>/dev/null || echo 'not found'",
+      {
+        encoding: "utf8",
+      },
+    );
+    const version = execSync("yt-dlp --version 2>/dev/null || echo 'not runnable'", {
+      encoding: "utf8",
+    });
+    res.json({ which: which.trim(), version: version.trim() });
+  } catch (e) {
+    res.json({ error: e.message });
+  }
+});
+
 // ─── Static Files ─────────────────────────────────────────────────────────────
 app.use(express.static(path.join(__dirname, "../public")));
 
@@ -61,24 +79,6 @@ app.get("/api/debug-cookies", (_req, res) => {
     firstLine: `${lines[0]?.slice(0, 50)}...`,
     hasYoutubeDomain: decoded.includes(".youtube.com"),
   });
-});
-
-app.get("/api/debug-ytdlp", (_req, res) => {
-  const { execSync } = require("node:child_process");
-  try {
-    const which = execSync(
-      "which yt-dlp || find /usr -name yt-dlp 2>/dev/null || echo 'not found'",
-      {
-        encoding: "utf8",
-      },
-    );
-    const version = execSync("yt-dlp --version 2>/dev/null || echo 'not runnable'", {
-      encoding: "utf8",
-    });
-    res.json({ which: which.trim(), version: version.trim() });
-  } catch (e) {
-    res.json({ error: e.message });
-  }
 });
 
 app.use("/api/info", infoRoutes);
