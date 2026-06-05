@@ -20,6 +20,7 @@ router.get("/", validateUrl, async (_req, res) => {
         "--no-playlist",
         "--no-warnings",
         "--quiet",
+        "--no-check-formats",
         ...ytdlp.getCookiesArgs(),
         _req.sanitizedUrl,
       ],
