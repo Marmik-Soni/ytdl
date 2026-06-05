@@ -3,9 +3,7 @@ services:
     name: ytdl
     runtime: node
     plan: free
-    buildCommand: |
-      pnpm install
-      pip3 install --upgrade yt-dlp yt-dlp-get-pot
+    buildCommand: pnpm install && pip3 install --upgrade yt-dlp yt-dlp-get-pot
     startCommand: node src/server.js
     envVars:
       - key: NODE_ENV
