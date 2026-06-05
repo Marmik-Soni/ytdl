@@ -20,7 +20,7 @@ router.get("/", validateUrl, async (_req, res) => {
         "--no-playlist",
         "--no-warnings",
         "--quiet",
-        ...ytdlp.getCookiesArgs(),
+        "--verbose",
         _req.sanitizedUrl,
       ],
       { timeout: config.ytdlp.timeout, maxBuffer: config.ytdlp.maxBuffer },
