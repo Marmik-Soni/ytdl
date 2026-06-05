@@ -21,6 +21,8 @@ router.get("/", validateUrl, async (_req, res) => {
         "--no-warnings",
         "--quiet",
         "--no-check-formats",
+        "--extractor-args",
+        "youtube:player_client=tv_embedded",
         ...ytdlp.getCookiesArgs(),
         _req.sanitizedUrl,
       ],
