@@ -5,28 +5,18 @@ const os = require("node:os");
 /**
  * Resolve the yt-dlp binary path.
  *
- * On Linux (Render), hardcodes the pip-installed path so plugins are
- * auto-discovered. On Windows, falls back to bundled .exe or PATH.
+ * On Linux, prefer the bundled binary. On Windows, use the bundled .exe.
  */
 function getPath() {
-  if (process.platform !== "win32") {
-    const candidates = [
-      "/opt/render/project/src/.venv/bin/yt-dlp",
-      "/root/.local/bin/yt-dlp",
-      "/usr/local/bin/yt-dlp",
-      "/usr/bin/yt-dlp",
-    ];
-    for (const p of candidates) {
-      if (fs.existsSync(p)) return p;
-    }
-    // Fall back to bundled binary
-    const bundled = path.join(__dirname, "../../yt-dlp");
-    if (fs.existsSync(bundled)) return bundled;
-    return "yt-dlp";
+  const isWindows = process.platform === "win32";
+  if (isWindows) {
+    const exe = path.join(__dirname, "../../yt-dlp.exe");
+    if (fs.existsSync(exe)) return exe;
+    return "yt-dlp.exe";
   }
-  const exe = path.join(__dirname, "../../yt-dlp.exe");
-  if (fs.existsSync(exe)) return exe;
-  return "yt-dlp.exe";
+  const bundled = path.join(__dirname, "../../yt-dlp");
+  if (fs.existsSync(bundled)) return bundled;
+  return "yt-dlp";
 }
 
 function getCookiesArgs() {
