@@ -5,7 +5,7 @@ services:
     plan: free
     buildCommand: |
       pnpm install
-      pip3 install yt-dlp yt-dlp-get-pot bgutil-ytdlp-pot-provider
+      pip3 install --upgrade yt-dlp yt-dlp-get-pot bgutil-ytdlp-pot-provider
     startCommand: node src/server.js
     envVars:
       - key: NODE_ENV

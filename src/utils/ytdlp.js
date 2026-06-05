@@ -1,23 +1,27 @@
+const { execSync } = require("node:child_process");
 const path = require("node:path");
 const fs = require("node:fs");
-
 const os = require("node:os");
 
 /**
  * Resolve the yt-dlp binary path.
  *
- * On Vercel (or any deployment that bundles the binary at the project root),
- * the bundled copy is preferred. Falls back to whatever is on PATH.
+ * Prefers the pip-installed yt-dlp (which has plugin support) over the
+ * bundled binary. Falls back to the bundled binary, then PATH.
  */
 function getPath() {
-  const isWindows = process.platform === "win32";
+  // Prefer pip-installed yt-dlp — it has full plugin support
+  try {
+    const pipPath = execSync("which yt-dlp", { encoding: "utf8" }).trim();
+    if (pipPath) return pipPath;
+  } catch {}
 
+  const isWindows = process.platform === "win32";
   if (isWindows) {
     const exe = path.join(__dirname, "../../yt-dlp.exe");
     if (fs.existsSync(exe)) return exe;
     return "yt-dlp.exe";
   }
-
   const bundled = path.join(__dirname, "../../yt-dlp");
   if (fs.existsSync(bundled)) return bundled;
   return "yt-dlp";
