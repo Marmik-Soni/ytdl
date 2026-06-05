@@ -33,10 +33,7 @@ function getCookiesArgs() {
   }
   const pluginsDir = path.join(__dirname, "../../yt-dlp-plugins");
 
-  return [
-    "--cookies", cookiesPath,
-    "--plugin-dirs", pluginsDir,
-  ];
+  return ["--cookies", cookiesPath, "--plugin-dirs", pluginsDir];
 }
 
 module.exports = { getPath, getCookiesArgs };
