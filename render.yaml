@@ -7,8 +7,8 @@ services:
       pnpm install
       curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux -o yt-dlp
       chmod +x yt-dlp
-      mkdir -p /opt/render/project/src/yt-dlp-plugins/extractor
-      pip3 install yt-dlp-get-pot bgutil-ytdlp-pot-provider --target /opt/render/project/src/yt-dlp-plugins
+      mkdir -p /opt/render/project/src/yt-dlp-plugins/yt_dlp_plugins/extractor
+      pip3 install yt-dlp-get-pot bgutil-ytdlp-pot-provider --target /opt/render/project/src/yt-dlp-plugins/yt_dlp_plugins
     startCommand: node src/server.js
     envVars:
       - key: NODE_ENV
